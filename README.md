@@ -22,30 +22,28 @@ sock.sendto(b"Hello", ("192.168.28.135", 5151))
 import socket
 import threading
 
-DEFAULT_PORT = 5151
+PORT = 5151
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# Socket 1: Dedicated listener on port 5151
+recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+recv_sock.bind(("0.0.0.0", PORT))
 
-# Touch the socket with a dummy connect/disconnect or wait until first sendto
-# Note: On Linux/iOS, recvfrom() on a completely uninitialized socket before any sendto()
-# may fail with EINVAL because no local port has been assigned yet.
-# Sending a 0-byte packet to localhost assigns an ephemeral port immediately without bind():
-sock.sendto(b"", ("127.0.0.1", DEFAULT_PORT))
+# Socket 2: Dedicated unbound sender (routes cleanly over Wi-Fi on iOS)
+send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 def listen():
     while True:
         try:
-            data, addr = sock.recvfrom(1024)
-            if data:  # Ignore the initial 0-byte self-kick
-                msg = data.decode("utf-8", errors="replace")
-                print(f"\n[{addr[0]}:{addr[1]}] {msg}")
+            data, addr = recv_sock.recvfrom(1024)
+            msg = data.decode("utf-8", errors="replace")
+            print(f"\n[{addr[0]}:{addr[1]}] {msg}")
         except OSError:
             break
 
 threading.Thread(target=listen, daemon=True).start()
 
-print(f"My ephemeral port: {sock.getsockname()[1]}")
-print("Send format: <IP> <message> (e.g., 192.168.28.135 hello world)")
+print(f"Listening on port {PORT}.")
+print("Send format: <IP> <message> (e.g., 192.168.28.135 hello)")
 
 try:
     while True:
@@ -60,14 +58,13 @@ try:
 
         target_ip, msg = parts
         try:
-            sock.sendto(msg.encode("utf-8"), (target_ip, DEFAULT_PORT))
-        except socket.gaierror:
-            print(f"Invalid IP address: {target_ip}")
-        except OSError as e:
+            send_sock.sendto(msg.encode("utf-8"), (target_ip, PORT))
+        except (socket.gaierror, OSError) as e:
             print(f"Send failed: {e}")
 except (KeyboardInterrupt, EOFError):
     print("\nExiting.")
 finally:
-    sock.close()
+    recv_sock.close()
+    send_sock.close()
 
 ```

@@ -1,11 +1,3 @@
-# IOS Setup
-
-1. Install ish shell
-2. Open ish and run: `apk add python3 nano`
-3. Run `echo bla > udp.py`
-4. Run `nano udp.py` 
-
-
 # Sending UDP Datagram
 
 ```python
@@ -15,6 +7,17 @@ sock = socket(AF_INET, SOCK_DGRAM)
 sock.sendto(b"Hello", ("192.168.28.135", 5151))
 ```
 
+# IOS Setup
+
+1. Install ish shell
+2. Open ish and run: `apk add python3 nano`
+3. Run `echo > udp.py`
+4. Run `nano udp.py`
+5. paste the code
+6. Click CTRL+O to save and CTRL+X to exit nano
+7. Run `python3 udp.py`
+
+<img width="238" height="335" alt="image" src="https://github.com/user-attachments/assets/ad523ea0-1309-4aa2-b47a-33d50cfcd347" />
 
 # UDP Chat
 

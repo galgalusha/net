@@ -71,3 +71,32 @@ finally:
     send_sock.close()
 
 ```
+
+# HTTP
+
+```py
+import socket
+from urllib.parse import quote_plus
+
+HOST = "192.168.1.100"
+PORT = 8080
+
+name = input("Name: ")
+animal = input("Favorite animal: ")
+body = f"name={quote_plus(name)}&animal={quote_plus(animal)}"
+
+req = (
+    f"POST / HTTP/1.1\r\n"
+    f"Host: {HOST}\r\n"
+    f"Content-Type: application/x-www-form-urlencoded\r\n"
+    f"Content-Length: {len(body.encode())}\r\n"
+    f"Connection: close\r\n\r\n"
+    f"{body}"
+)
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((HOST, PORT))
+s.sendall(req.encode())
+print(s.recv(4096).decode())
+s.close()
+```

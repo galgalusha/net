@@ -72,7 +72,26 @@ finally:
 
 ```
 
-# HTTP
+# HTTP GET
+```py
+HOST = '192.168.28.103'
+PATH = '/'
+BUFFER_SIZE = 1000
+
+import socket
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect((HOST, 80))
+sock.sendall(f"GET {PATH} HTTP/1.1\r\nHost: {HOST}\r\nConnection: close\r\n\r\n".encode())
+
+response = b""
+while chunk := sock.recv(BUFFER_SIZE):
+    response += chunk
+sock.close()
+
+print(response.decode("utf-8"))
+```
+# HTTP POST
 
 ```py
 import socket

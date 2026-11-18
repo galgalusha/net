@@ -1,12 +1,3 @@
-# Sending UDP Datagram
-
-```python
-from socket import *
-
-sock = socket(AF_INET, SOCK_DGRAM)
-sock.sendto(b"Hello", ("192.168.28.135", 5151))
-```
-
 # IOS Setup
 
 1. Install ish shell
@@ -19,7 +10,19 @@ sock.sendto(b"Hello", ("192.168.28.135", 5151))
 
 <img width="238" height="335" alt="image" src="https://github.com/user-attachments/assets/ad523ea0-1309-4aa2-b47a-33d50cfcd347" />
 
-# UDP Chat
+# Android Setup
+Install `Pydroid 3`
+
+# Sending UDP Datagram
+
+```python
+from socket import *
+
+sock = socket(AF_INET, SOCK_DGRAM)
+sock.sendto(b"Hello", ("192.168.28.135", 5151))
+```
+
+# UDP Chat (Send and Receive)
 
 ```python
 import socket
@@ -118,4 +121,60 @@ s.connect((HOST, PORT))
 s.sendall(req.encode())
 print(s.recv(4096).decode())
 s.close()
+```
+
+# HTTP Server (for lecturer leptop)
+```py
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import parse_qs
+
+HTML_FORM = """<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; margin: 40px;">
+  <h2>Networks Lab - POST Test</h2>
+  <form method="POST" action="/">
+    Your name: <input type="text" name="name" required /> <br><br>
+    Your favorite animal: <input type="text" name="animal" required /> <br><br>
+    <input type="submit" value="Submit" />
+  </form>
+</body>
+</html>
+"""
+
+class LabHandler(BaseHTTPRequestHandler):
+    def log_message(self, format, *args):
+        # Silence default noisy HTTP request logs
+        pass
+
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(HTML_FORM.encode("utf-8"))
+
+    def do_POST(self):
+        content_length = int(self.headers.get("Content-Length", 0))
+        raw_body = self.rfile.read(content_length).decode("utf-8", errors="replace")
+        fields = parse_qs(raw_body)
+
+        user_agent = self.headers.get("User-Agent", "")
+        is_browser = "Mozilla/" in user_agent
+
+        name = fields.get("name", ["(missing)"])[0]
+        animal = fields.get("animal", ["(missing)"])[0]
+        source = "REAL BROWSER" if is_browser else "PYTHON SCRIPT"
+
+        print(f"[{self.client_address[0]}] [{source}] Name: {name} | Animal: {animal}")
+        if not is_browser and user_agent:
+            print(f"   -> User-Agent: {user_agent}")
+
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(f"Received from {source}: {name} likes {animal}\n".encode("utf-8"))
+
+if __name__ == "__main__":
+    server = HTTPServer(("0.0.0.0", 8080), LabHandler)
+    print("Listening on port 8080...")
+    server.serve_forever()
 ```
